@@ -14,6 +14,8 @@ Make a note of the kubernetes.io/hostname label of one of the nodes and ssh to o
 ssh -i <.pem key> ubuntu@<node_public_IP> 
 ```
 Note: Make sure you `.pem` key with you
+
+
 Switch to root and run the following commands. A directory with custom index.html is created for PersistentVolume mount 
 ```
 sudo su
