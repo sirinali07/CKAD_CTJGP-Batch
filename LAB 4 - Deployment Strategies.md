@@ -277,7 +277,7 @@ In the yaml file of Service change the Selector to 'type: web-app` and replace.
 
 Check the endpoints of the service. It should show all the pods of both the deployments.
 ```
-kubectl get ep svc svc-web
+kubectl get ep svc-web
 ```
 ```
 kubectl get po -o wide
