@@ -97,7 +97,7 @@ spec:
           - mountPath: "/usr/share/nginx/html"
             name: pv-storage
   nodeSelector:
-    role=node
+    role: node
 ```
 Apply the Pod yaml created in the previous step
 ```
