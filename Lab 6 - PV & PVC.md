@@ -97,7 +97,7 @@ spec:
           - mountPath: "/usr/share/nginx/html"
             name: pv-storage
   nodeSelector:
-    kubernetes.io/hostname: ip-172-20-33-138.ap-south-1.compute.internal
+    role=node
 ```
 Apply the Pod yaml created in the previous step
 ```
