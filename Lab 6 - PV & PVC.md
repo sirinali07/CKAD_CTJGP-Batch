@@ -1,6 +1,10 @@
 ## Static Provisioning
 
 ### Task 1: Get Node Label and Create Custom Index.html on Node
+add the label to worker node
+```
+kubectl label node node-1 role=node
+```
 View worker nodes and their labels
 ```
 kubectl get nodes --show-labels | grep role=node
