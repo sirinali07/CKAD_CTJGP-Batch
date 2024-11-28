@@ -9,6 +9,11 @@ Install the AWS EBS CSI driver by using below command
 ```bash
 kubectl apply -k "github.com/kubernetes-sigs/aws-ebs-csi-driver/deploy/kubernetes/overlays/stable/?ref=release-1.37"
 ```
+`Note :` For more detail visit the below page
+
+https://github.com/kubernetes-sigs/aws-ebs-csi-driver/blob/master/docs/install.md
+
+
 Verify Installation
 ```bash
 kubectl get pods -A | grep ebs
