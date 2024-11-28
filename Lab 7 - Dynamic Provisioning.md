@@ -74,7 +74,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 20Gi
+      storage: 5Gi
   storageClassName: ebs-storage
 ```
 save the file using `ESCAPE + :wq!`
