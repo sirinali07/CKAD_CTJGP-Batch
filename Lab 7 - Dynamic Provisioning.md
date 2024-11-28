@@ -152,15 +152,17 @@ exit
 ```
 
 ### Task 6: Cleanup the resources
-Delete Resources
+Delete the pod
 
 ``bash
 kubectl delete -f pod.yaml
 ```
+Delete the pvc
 
 ```bash
 kubectl delete -f pvc.yaml
 ```
+Delete the storageclass
 
 ```bash
 kubectl delete -f storageclass.yaml
