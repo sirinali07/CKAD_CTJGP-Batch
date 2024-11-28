@@ -154,7 +154,7 @@ exit
 ### Task 6: Cleanup the resources
 Delete the pod
 
-``bash
+```bash
 kubectl delete -f pod.yaml
 ```
 Delete the pvc
