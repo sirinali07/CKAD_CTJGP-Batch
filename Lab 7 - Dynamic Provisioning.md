@@ -26,6 +26,7 @@ Ensure the pods related to aws-ebs-csi-driver are running successfully.
 
 A StorageClass in Kubernetes is a powerful abstraction layer that defines how storage resources (like AWS EBS, Google Persistent Disks, Azure Disks, or others) should be provisioned and managed dynamically. It simplifies and automates the creation and management of persistent storage in a Kubernetes cluster by providing predefined policies for storage provisioning.
 
+
 ```
 vi storageclass.yaml
 ```
@@ -56,6 +57,7 @@ kubectl get sc
 ```
 
 ### Task 3: Create a PersistentVolumeClaim (PVC) using below yaml
+
 ```
 vi pvc.yaml
 ```
