@@ -5,6 +5,8 @@
 
 
 ### Task 1: Install the AWS EBS CSI Driver
+The EBS CSI driver enables Kubernetes to interact with AWS EBS for provisioning, attaching, and managing persistent storage dynamically.
+
 Install the AWS EBS CSI driver by using below command
 ```bash
 kubectl apply -k "github.com/kubernetes-sigs/aws-ebs-csi-driver/deploy/kubernetes/overlays/stable/?ref=release-1.37"
@@ -21,6 +23,8 @@ kubectl get pods -A | grep ebs
 Ensure the pods related to aws-ebs-csi-driver are running successfully.
 
 ### Task 2: Create a Storage Class 
+
+A StorageClass in Kubernetes is a powerful abstraction layer that defines how storage resources (like AWS EBS, Google Persistent Disks, Azure Disks, or others) should be provisioned and managed dynamically. It simplifies and automates the creation and management of persistent storage in a Kubernetes cluster by providing predefined policies for storage provisioning.
 
 ```
 vi storageclass.yaml
