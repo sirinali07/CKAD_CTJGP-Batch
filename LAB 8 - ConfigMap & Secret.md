@@ -60,7 +60,7 @@ kubectl describe cm cm-1
 ```
 Inject the ConfigMap into the Pod Yaml File
 ```
-vi env.yaml
+vi env1.yaml
 ```
 Add the given content, by pressing `INSERT`
 
@@ -70,7 +70,7 @@ kind: Pod
 metadata:
   labels:
     app: web
-  name: web-pod
+  name: web-pod-1
 spec:
   containers:
   - image: httpd
@@ -84,14 +84,14 @@ spec:
 save the file using `ESCAPE + :wq!`
 
 ```
-kubectl apply -f env.yaml
+kubectl apply -f env1.yaml
 ```
 ```
-kubectl describe pod web-pod
+kubectl describe pod web-pod-1
 ```
 Enter the pod and check if the variable has been passed correctly or not
 ```
-kubectl exec -it web-pod -- sh
+kubectl exec -it web-pod-1 -- sh
 ```
 ```
 echo $db_user
@@ -108,6 +108,8 @@ Create a ConfigMap
 ```
 kubectl create cm cm-1 --from-literal=db_user=admin --from-literal=db_pwd=1234
 ```
+* Skip the step if cm-1 already created
+  
 ```
 kubectl get cm
 ```
@@ -116,7 +118,7 @@ kubectl describe cm cm-1
 ```
 Inject particular variable from the ConfigMap into the Pod Yaml File
 ```
-vi env.yaml
+vi env2.yaml
 ```
 Add the given content, by pressing `INSERT`
 
@@ -126,7 +128,7 @@ kind: Pod
 metadata:
   labels:
     app: web
-  name: web-pod
+  name: web-pod-2
 spec:
   containers:
   - image: httpd
@@ -143,14 +145,14 @@ spec:
 save the file using `ESCAPE + :wq!`
 
 ```
-kubectl replace -f env.yaml --force
+kubectl replace -f env2.yaml --force
 ```
 ```
-kubectl describe pod web-pod
+kubectl describe pod web-pod-2
 ```
 Enter the pod and check if the variable has been passed correctly or not
 ```
-kubectl exec -it web-pod -- sh
+kubectl exec -it web-pod-2 -- sh
 ```
 ```
 echo $db_user
@@ -174,17 +176,17 @@ This is CKAD Training. We are practicing Injecting variables from ConfigMaps(Fro
 ```
 Create a ConfigMap
 ```
-kubectl create cm cm-1 --from-file=token         #--from-file=<filen-name>. This file name acts as the key
+kubectl create cm cm-file --from-file=token         #--from-file=<filen-name>. This file name acts as the key
 ```
 ```
 kubectl get cm
 ```
 ```
-kubectl describe cm cm-1
+kubectl describe cm cm-file
 ```
 Inject particular variable from the ConfigMap into the Pod Yaml File
 ```
-vi env.yaml
+vi env3.yaml
 ```
 Add the given content, by pressing `INSERT`
 
@@ -194,7 +196,7 @@ kind: Pod
 metadata:
   labels:
     app: web
-  name: web-pod
+  name: web-pod-3
 spec:
   containers:
   - image: httpd
@@ -208,14 +210,14 @@ spec:
 save the file using `ESCAPE + :wq!`
 
 ```
-kubectl apply -f env.yaml
+kubectl apply -f env3.yaml
 ```
 ```
-kubectl describe pod web-pod
+kubectl describe pod web-pod-3
 ```
 Enter the pod and check if the variable has been passed correctly or not
 ```
-kubectl exec -it web-pod -- sh
+kubectl exec -it web-pod-3 -- sh
 ```
 ```
 echo $token
@@ -235,17 +237,19 @@ This is CKAD Training. We are practicing Injecting variables from ConfigMaps(Fro
 ```
 Create a ConfigMap
 ```
-kubectl create cm cm-1 --from-file=token        
+kubectl create cm cm-file --from-file=token        
 ```
+* Skip the step if cm-file already created
+
 ```
 kubectl get cm
 ```
 ```
-kubectl describe cm cm-1
+kubectl describe cm cm-file
 ```
 Inject as volume mount
 ```
-vi env.yaml
+vi env4.yaml
 ```
 Add the given content, by pressing `INSERT`
 
@@ -255,7 +259,7 @@ kind: Pod
 metadata:
   labels:
     app: web
-  name: web-pod
+  name: web-pod-4
 spec:
   volumes:
   - name: cm-volume
@@ -274,14 +278,14 @@ spec:
 save the file using `ESCAPE + :wq!`
 
 ```
-kubectl replace -f env.yaml --force
+kubectl replace -f env4.yaml --force
 ```
 ```
-kubectl describe pod web-pod
+kubectl describe pod web-pod-4
 ```
 Enter the pod and check if the variable has been passed correctly or not
 ```
-kubectl exec -it web-pod -- sh
+kubectl exec -it web-pod-4 -- sh
 ```
 ```
 cd /app
