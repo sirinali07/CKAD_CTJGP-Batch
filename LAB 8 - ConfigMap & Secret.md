@@ -35,7 +35,7 @@ kubectl describe pod env-pod
 ```
 Enter the pod and check if the variable has been passed correctly or not
 ```
-kubectl exec -it env-pod -- sh
+kubectl exec -it env-pod -- bash
 ```
 ```
 echo $db_user
@@ -91,7 +91,7 @@ kubectl describe pod web-pod-1
 ```
 Enter the pod and check if the variable has been passed correctly or not
 ```
-kubectl exec -it web-pod-1 -- sh
+kubectl exec -it web-pod-1 -- bash
 ```
 ```
 echo $db_user
@@ -152,7 +152,7 @@ kubectl describe pod web-pod-2
 ```
 Enter the pod and check if the variable has been passed correctly or not
 ```
-kubectl exec -it web-pod-2 -- sh
+kubectl exec -it web-pod-2 -- bash
 ```
 ```
 echo $db_user
@@ -217,7 +217,7 @@ kubectl describe pod web-pod-3
 ```
 Enter the pod and check if the variable has been passed correctly or not
 ```
-kubectl exec -it web-pod-3 -- sh
+kubectl exec -it web-pod-3 -- bash
 ```
 ```
 echo $token
@@ -285,7 +285,7 @@ kubectl describe pod web-pod-4
 ```
 Enter the pod and check if the variable has been passed correctly or not
 ```
-kubectl exec -it web-pod-4 -- sh
+kubectl exec -it web-pod-4 -- bash
 ```
 ```
 cd /app
@@ -380,7 +380,7 @@ kubectl apply -f sc-pod.yaml
 kubectl get po
 ```
 ```
-kubectl exec -it sc-pod -- sh
+kubectl exec -it sc-pod -- bash
 ```
 ```
 echo $db_user
