@@ -4,6 +4,8 @@
 ```
 vi env.yaml
 ```
+Add the given content, by pressing `INSERT`
+
 ```yaml
 apiVersion: v1
 kind: Pod
@@ -23,6 +25,8 @@ spec:
     - name: db_pwd
       value: "1234"
 ```
+save the file using `ESCAPE + :wq!`
+
 ```
 kubectl apply -f env.yaml
 ```
@@ -58,6 +62,8 @@ Inject the ConfigMap into the Pod Yaml File
 ```
 vi env.yaml
 ```
+Add the given content, by pressing `INSERT`
+
 ```yaml
 apiVersion: v1
 kind: Pod
@@ -75,6 +81,8 @@ spec:
     - configMapRef:
         name: cm-1
 ```
+save the file using `ESCAPE + :wq!`
+
 ```
 kubectl apply -f env.yaml
 ```
@@ -110,6 +118,8 @@ Inject particular variable from the ConfigMap into the Pod Yaml File
 ```
 vi env.yaml
 ```
+Add the given content, by pressing `INSERT`
+
 ```yaml
 apiVersion: v1
 kind: Pod
@@ -130,6 +140,8 @@ spec:
           name: cm-1
           key: db_pwd
 ```
+save the file using `ESCAPE + :wq!`
+
 ```
 kubectl replace -f env.yaml --force
 ```
@@ -174,6 +186,8 @@ Inject particular variable from the ConfigMap into the Pod Yaml File
 ```
 vi env.yaml
 ```
+Add the given content, by pressing `INSERT`
+
 ```yaml
 apiVersion: v1
 kind: Pod
@@ -191,6 +205,8 @@ spec:
     - configMapRef:
         name: cm-1
 ```
+save the file using `ESCAPE + :wq!`
+
 ```
 kubectl apply -f env.yaml
 ```
@@ -231,6 +247,8 @@ Inject as volume mount
 ```
 vi env.yaml
 ```
+Add the given content, by pressing `INSERT`
+
 ```yaml
 apiVersion: v1
 kind: Pod
@@ -253,6 +271,8 @@ spec:
     - containerPort: 80
 
 ```
+save the file using `ESCAPE + :wq!`
+
 ```
 kubectl replace -f env.yaml --force
 ```
@@ -285,6 +305,8 @@ Declrative
 ```
 vi secret.yaml
 ```
+Add the given content, by pressing `INSERT`
+
 ```yaml
 apiVersion: v1
 kind: Secret
@@ -309,6 +331,8 @@ data:
   ##password is mypwd
   password: bXlwd2QK
 ```
+save the file using `ESCAPE + :wq!`
+
 ```
 kubectl apply -f secret.yaml
 ```
@@ -324,6 +348,8 @@ Injecting all values
 ```
 vi sc-pod.yaml
 ```
+Add the given content, by pressing `INSERT`
+
 ```yaml
 apiVersion: v1
 kind: Pod
@@ -341,6 +367,8 @@ spec:
     - secretRef:
         name: mysql-credentials
 ```
+save the file using `ESCAPE + :wq!`
+
 ```
 kubectl apply -f sc-pod.yaml
 ```
