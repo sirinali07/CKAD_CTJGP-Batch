@@ -200,7 +200,7 @@ metadata:
 spec:
   containers:
   - image: httpd
-    name: ctr-1
+    name: ctr-file
     ports:
     - containerPort: 80
     envFrom:
