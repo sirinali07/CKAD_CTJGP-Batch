@@ -200,7 +200,7 @@ metadata:
 spec:
   containers:
   - image: httpd
-    name: ctr-file
+    name: ctr-1
     ports:
     - containerPort: 80
     envFrom:
@@ -264,7 +264,7 @@ spec:
   volumes:
   - name: cm-volume
     configMap:
-      name: cm-1
+      name: cm-file
   containers:
   - image: httpd
     name: ctr-1
