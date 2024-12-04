@@ -101,6 +101,10 @@ Retrieve the token to log in by running the following command:
 ```
 kubectl get secret $(kubectl get serviceaccount admin-user -n kubernetes-dashboard -o jsonpath='{.secrets[0].name}') -n kubernetes-dashboard -o jsonpath='{.data.token}' | base64 --decode
 ```
+OR
+```
+kubectl -n kubernetes-dashboard create token admin-user
+```
 Copy the token and paste it into the Kubernetes dashboard login screen, then click Sign in
 
 Cleanup: To delete the Kubernetes dashboard version 2.5, use the following command in the master node:
