@@ -39,10 +39,6 @@ To list the Helm chart repositories configured in your local environment.
 ```
 helm repo list
 ```
-To search for Helm charts related to WordPress in the configured Helm repositories
-```
-helm search repo wordpress
-```
 To install the WordPress application using the Bitnami Helm chart with the release name my-wordpress
 ```
 helm install my-wordpress bitnami/wordpress
