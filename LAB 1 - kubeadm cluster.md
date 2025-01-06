@@ -21,68 +21,47 @@ To begin, log in to AWS Console.
 * Add the below code in Advanced Details -> User data - optional.
 ```
 #!/bin/bash
-#
-# Common setup for all servers (Control Plane and Nodes)
 
+# Common setup for all servers (Control Plane and Nodes)
 set -euxo pipefail
 
-# Kuernetes Variable Declaration
-
+# Kubernetes Variable Declaration
 KUBERNETES_VERSION="1.29.0-1.1"
 
-# disable swap
+# Disable swap
 sudo swapoff -a
 
-# keeps the swaf off during reboot
+# Keep swap off during reboot
 (crontab -l 2>/dev/null; echo "@reboot /sbin/swapoff -a") | crontab - || true
+
+# Update package list
 sudo apt-get update -y
 
-
 # Install CRI-O Runtime
+sudo apt install apt-transport-https ca-certificates curl gnupg2 software-properties-common -y
+export OS=xUbuntu_22.04
+echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/ /" | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
+echo "deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/$CRIO_VERSION/$OS/ /" | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:$CRIO_VERSION.list
+curl -L https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:$CRIO_VERSION/$OS/Release.key | sudo apt-key add -
+curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/Release.key | sudo apt-key add -
+sudo apt update
+sudo apt install cri-o cri-o-runc -y
+sudo systemctl start crio
+sudo systemctl enable crio
 
-OS="xUbuntu_22.04"
+# Install container networking plugins
+sudo apt install containernetworking-plugins -y
+sudo sed -i '/#network_dir/s/^#//; /#plugin_dirs/s/^#//; /plugin_dirs/s/\[\]/["\/usr\/lib\/cni\/", "\/opt\/cni\/bin"]/' /etc/crio/crio.conf
+sudo systemctl restart crio
 
-VERSION="1.28"
+# Install cri-tools
+sudo apt install -y cri-tools
+sudo crictl --runtime-endpoint unix:///var/run/crio/crio.sock version
+sudo crictl info
+sudo su -c "crictl completion > /etc/bash_completion.d/crictl && source ~/.bashrc"
+crictl
 
-# Create the .conf file to load the modules at bootup
-cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
-overlay
-br_netfilter
-EOF
-
-sudo modprobe overlay
-sudo modprobe br_netfilter
-
-# sysctl params required by setup, params persist across reboots
-cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
-net.bridge.bridge-nf-call-iptables  = 1
-net.bridge.bridge-nf-call-ip6tables = 1
-net.ipv4.ip_forward                 = 1
-EOF
-
-# Apply sysctl params without reboot
-sudo sysctl --system
-
-cat <<EOF | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
-deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/ /
-EOF
-cat <<EOF | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:$VERSION.list
-deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/$VERSION/$OS/ /
-EOF
-
-curl -L https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:$VERSION/$OS/Release.key | sudo apt-key --keyring /etc/apt/trusted.gpg.d/libcontainers.gpg add -
-curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/Release.key | sudo apt-key --keyring /etc/apt/trusted.gpg.d/libcontainers.gpg add -
-
-sudo apt-get update
-sudo apt-get install cri-o cri-o-runc -y
-
-sudo systemctl daemon-reload
-sudo systemctl enable crio --now
-
-echo "CRI runtime installed susccessfully"
-
-# Install kubelet, kubectl and Kubeadm
-
+# Install kubelet, kubectl, and kubeadm
 sudo apt-get update -y
 sudo apt-get install -y apt-transport-https ca-certificates curl gpg
 
@@ -97,12 +76,17 @@ sudo apt-get install -y kubelet="$KUBERNETES_VERSION" kubectl="$KUBERNETES_VERSI
 sudo apt-get update -y
 sudo apt-mark hold kubelet kubeadm kubectl
 
+# Install jq
 sudo apt-get install -y jq
 
+# Get local IP address
 local_ip="$(ip --json addr show eth0 | jq -r '.[0].addr_info[] | select(.family == "inet") | .local')"
+
+# Configure kubelet
 cat > /etc/default/kubelet << EOF
 KUBELET_EXTRA_ARGS=--node-ip=$local_ip
 EOF
+
 ```
 
 * Launch the Instance.
@@ -122,68 +106,47 @@ vi kubeadm-setup.sh
 ```
 ```
 #!/bin/bash
-#
-# Common setup for all servers (Control Plane and Nodes)
 
+# Common setup for all servers (Control Plane and Nodes)
 set -euxo pipefail
 
-# Kuernetes Variable Declaration
-
+# Kubernetes Variable Declaration
 KUBERNETES_VERSION="1.29.0-1.1"
 
-# disable swap
+# Disable swap
 sudo swapoff -a
 
-# keeps the swaf off during reboot
+# Keep swap off during reboot
 (crontab -l 2>/dev/null; echo "@reboot /sbin/swapoff -a") | crontab - || true
+
+# Update package list
 sudo apt-get update -y
 
-
 # Install CRI-O Runtime
+sudo apt install apt-transport-https ca-certificates curl gnupg2 software-properties-common -y
+export OS=xUbuntu_22.04
+echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/ /" | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
+echo "deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/$CRIO_VERSION/$OS/ /" | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:$CRIO_VERSION.list
+curl -L https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:$CRIO_VERSION/$OS/Release.key | sudo apt-key add -
+curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/Release.key | sudo apt-key add -
+sudo apt update
+sudo apt install cri-o cri-o-runc -y
+sudo systemctl start crio
+sudo systemctl enable crio
 
-OS="xUbuntu_22.04"
+# Install container networking plugins
+sudo apt install containernetworking-plugins -y
+sudo sed -i '/#network_dir/s/^#//; /#plugin_dirs/s/^#//; /plugin_dirs/s/\[\]/["\/usr\/lib\/cni\/", "\/opt\/cni\/bin"]/' /etc/crio/crio.conf
+sudo systemctl restart crio
 
-VERSION="1.28"
+# Install cri-tools
+sudo apt install -y cri-tools
+sudo crictl --runtime-endpoint unix:///var/run/crio/crio.sock version
+sudo crictl info
+sudo su -c "crictl completion > /etc/bash_completion.d/crictl && source ~/.bashrc"
+crictl
 
-# Create the .conf file to load the modules at bootup
-cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
-overlay
-br_netfilter
-EOF
-
-sudo modprobe overlay
-sudo modprobe br_netfilter
-
-# sysctl params required by setup, params persist across reboots
-cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
-net.bridge.bridge-nf-call-iptables  = 1
-net.bridge.bridge-nf-call-ip6tables = 1
-net.ipv4.ip_forward                 = 1
-EOF
-
-# Apply sysctl params without reboot
-sudo sysctl --system
-
-cat <<EOF | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
-deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/ /
-EOF
-cat <<EOF | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:$VERSION.list
-deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/$VERSION/$OS/ /
-EOF
-
-curl -L https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:$VERSION/$OS/Release.key | sudo apt-key --keyring /etc/apt/trusted.gpg.d/libcontainers.gpg add -
-curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/Release.key | sudo apt-key --keyring /etc/apt/trusted.gpg.d/libcontainers.gpg add -
-
-sudo apt-get update
-sudo apt-get install cri-o cri-o-runc -y
-
-sudo systemctl daemon-reload
-sudo systemctl enable crio --now
-
-echo "CRI runtime installed susccessfully"
-
-# Install kubelet, kubectl and Kubeadm
-
+# Install kubelet, kubectl, and kubeadm
 sudo apt-get update -y
 sudo apt-get install -y apt-transport-https ca-certificates curl gpg
 
@@ -198,12 +161,17 @@ sudo apt-get install -y kubelet="$KUBERNETES_VERSION" kubectl="$KUBERNETES_VERSI
 sudo apt-get update -y
 sudo apt-mark hold kubelet kubeadm kubectl
 
+# Install jq
 sudo apt-get install -y jq
 
+# Get local IP address
 local_ip="$(ip --json addr show eth0 | jq -r '.[0].addr_info[] | select(.family == "inet") | .local')"
+
+# Configure kubelet
 cat > /etc/default/kubelet << EOF
 KUBELET_EXTRA_ARGS=--node-ip=$local_ip
 EOF
+
 
 ```
 ```
