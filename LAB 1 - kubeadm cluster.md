@@ -21,69 +21,86 @@ To begin, log in to AWS Console.
 * Add the below code in Advanced Details -> User data - optional.
 ```
 #!/bin/bash
-
+#
 # Common setup for all servers (Control Plane and Nodes)
+
 set -euxo pipefail
 
 # Kubernetes Variable Declaration
-KUBERNETES_VERSION="1.29.0-1.1"
+KUBERNETES_VERSION="v1.30"
+CRIO_VERSION="v1.30"
+KUBERNETES_INSTALL_VERSION="1.30.0-1.1"
 
 # Disable swap
 sudo swapoff -a
 
-# Keep swap off during reboot
+# Keeps the swap off during reboot
 (crontab -l 2>/dev/null; echo "@reboot /sbin/swapoff -a") | crontab - || true
-
-# Update package list
 sudo apt-get update -y
 
-# Install CRI-O Runtime
-sudo apt install apt-transport-https ca-certificates curl gnupg2 software-properties-common -y
-export OS=xUbuntu_22.04
-export CRIO_VERSION=1.24
-echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/ /" | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
-echo "deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/$CRIO_VERSION/$OS/ /" | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:$CRIO_VERSION.list
-curl -L https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:$CRIO_VERSION/$OS/Release.key | sudo apt-key add -
-curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/Release.key | sudo apt-key add -
-sudo apt update
-sudo apt install cri-o cri-o-runc -y
-sudo systemctl start crio
-sudo systemctl enable crio
+# Create the .conf file to load the modules at bootup
+cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
+overlay
+br_netfilter
+EOF
 
-# Install container networking plugins
-sudo apt install containernetworking-plugins -y
-sudo sed -i '/#network_dir/s/^#//; /#plugin_dirs/s/^#//; /plugin_dirs/s/\[\]/["\/usr\/lib\/cni\/", "\/opt\/cni\/bin"]/' /etc/crio/crio.conf
-sudo systemctl restart crio
+sudo modprobe overlay
+sudo modprobe br_netfilter
 
-# Install cri-tools
-sudo apt install -y cri-tools
-sudo crictl --runtime-endpoint unix:///var/run/crio/crio.sock version
-sudo crictl info
-sudo su -c "crictl completion > /etc/bash_completion.d/crictl && source ~/.bashrc"
-crictl
+# Sysctl params required by setup, params persist across reboots
+cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-iptables  = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+net.ipv4.ip_forward                 = 1
+EOF
 
-# Install kubelet, kubectl, and kubeadm
+# Apply sysctl params without reboot
+sudo sysctl --system
+
 sudo apt-get update -y
 sudo apt-get install -y apt-transport-https ca-certificates curl gpg
 
-curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-1-28-apt-keyring.gpg
-echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-1-28-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes-1.28.list
+# Install CRI-O Runtime
+sudo apt-get update -y
+sudo apt-get install -y software-properties-common curl apt-transport-https ca-certificates
 
-curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-1-29-apt-keyring.gpg
-echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-1-29-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes-1.29.list
+curl -fsSL https://pkgs.k8s.io/addons:/cri-o:/stable:/$CRIO_VERSION/deb/Release.key |
+    gpg --dearmor -o /etc/apt/keyrings/cri-o-apt-keyring.gpg
+
+echo "deb [signed-by=/etc/apt/keyrings/cri-o-apt-keyring.gpg] https://pkgs.k8s.io/addons:/cri-o:/stable:/$CRIO_VERSION/deb/ /" |
+    tee /etc/apt/sources.list.d/cri-o.list
 
 sudo apt-get update -y
-sudo apt-get install -y kubelet="$KUBERNETES_VERSION" kubectl="$KUBERNETES_VERSION" kubeadm="$KUBERNETES_VERSION"
+sudo apt-get install -y cri-o
+
+sudo systemctl daemon-reload
+sudo systemctl enable crio --now
+sudo systemctl start crio.service
+
+echo "CRI runtime installed successfully"
+
+# Install kubelet, kubectl, and kubeadm
+curl -fsSL https://pkgs.k8s.io/core:/stable:/$KUBERNETES_VERSION/deb/Release.key |
+    gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/$KUBERNETES_VERSION/deb/ /" |
+    tee /etc/apt/sources.list.d/kubernetes.list
+
 sudo apt-get update -y
+sudo apt-get install -y kubelet="$KUBERNETES_INSTALL_VERSION" kubectl="$KUBERNETES_INSTALL_VERSION" kubeadm="$KUBERNETES_INSTALL_VERSION"
+
+# Prevent automatic updates for kubelet, kubeadm, and kubectl
 sudo apt-mark hold kubelet kubeadm kubectl
 
-# Install jq
+sudo apt-get update -y
+
+# Install jq, a command-line JSON processor
 sudo apt-get install -y jq
 
-# Get local IP address
-local_ip="$(ip --json addr show eth0 | jq -r '.[0].addr_info[] | select(.family == "inet") | .local')"
+# Retrieve the local IP address of the eth0 interface and set it for kubelet
+local_ip="$(ip --json addr show enx0 | jq -r '.[0].addr_info[] | select(.family == "inet") | .local')"
 
-# Configure kubelet
+# Write the local IP address to the kubelet default configuration file
 cat > /etc/default/kubelet << EOF
 KUBELET_EXTRA_ARGS=--node-ip=$local_ip
 EOF
@@ -107,73 +124,89 @@ vi kubeadm-setup.sh
 ```
 ```
 #!/bin/bash
-
+#
 # Common setup for all servers (Control Plane and Nodes)
+
 set -euxo pipefail
 
 # Kubernetes Variable Declaration
-KUBERNETES_VERSION="1.29.0-1.1"
+KUBERNETES_VERSION="v1.30"
+CRIO_VERSION="v1.30"
+KUBERNETES_INSTALL_VERSION="1.30.0-1.1"
 
 # Disable swap
 sudo swapoff -a
 
-# Keep swap off during reboot
+# Keeps the swap off during reboot
 (crontab -l 2>/dev/null; echo "@reboot /sbin/swapoff -a") | crontab - || true
-
-# Update package list
 sudo apt-get update -y
 
-# Install CRI-O Runtime
-sudo apt install apt-transport-https ca-certificates curl gnupg2 software-properties-common -y
-export OS=xUbuntu_22.04
-export CRIO_VERSION=1.24
-echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/ /" | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
-echo "deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/$CRIO_VERSION/$OS/ /" | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:$CRIO_VERSION.list
-curl -L https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:$CRIO_VERSION/$OS/Release.key | sudo apt-key add -
-curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/Release.key | sudo apt-key add -
-sudo apt update
-sudo apt install cri-o cri-o-runc -y
-sudo systemctl start crio
-sudo systemctl enable crio
+# Create the .conf file to load the modules at bootup
+cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
+overlay
+br_netfilter
+EOF
 
-# Install container networking plugins
-sudo apt install containernetworking-plugins -y
-sudo sed -i '/#network_dir/s/^#//; /#plugin_dirs/s/^#//; /plugin_dirs/s/\[\]/["\/usr\/lib\/cni\/", "\/opt\/cni\/bin"]/' /etc/crio/crio.conf
-sudo systemctl restart crio
+sudo modprobe overlay
+sudo modprobe br_netfilter
 
-# Install cri-tools
-sudo apt install -y cri-tools
-sudo crictl --runtime-endpoint unix:///var/run/crio/crio.sock version
-sudo crictl info
-sudo su -c "crictl completion > /etc/bash_completion.d/crictl && source ~/.bashrc"
-crictl
+# Sysctl params required by setup, params persist across reboots
+cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-iptables  = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+net.ipv4.ip_forward                 = 1
+EOF
 
-# Install kubelet, kubectl, and kubeadm
+# Apply sysctl params without reboot
+sudo sysctl --system
+
 sudo apt-get update -y
 sudo apt-get install -y apt-transport-https ca-certificates curl gpg
 
-curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-1-28-apt-keyring.gpg
-echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-1-28-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes-1.28.list
+# Install CRI-O Runtime
+sudo apt-get update -y
+sudo apt-get install -y software-properties-common curl apt-transport-https ca-certificates
 
-curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-1-29-apt-keyring.gpg
-echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-1-29-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes-1.29.list
+curl -fsSL https://pkgs.k8s.io/addons:/cri-o:/stable:/$CRIO_VERSION/deb/Release.key |
+    gpg --dearmor -o /etc/apt/keyrings/cri-o-apt-keyring.gpg
+
+echo "deb [signed-by=/etc/apt/keyrings/cri-o-apt-keyring.gpg] https://pkgs.k8s.io/addons:/cri-o:/stable:/$CRIO_VERSION/deb/ /" |
+    tee /etc/apt/sources.list.d/cri-o.list
 
 sudo apt-get update -y
-sudo apt-get install -y kubelet="$KUBERNETES_VERSION" kubectl="$KUBERNETES_VERSION" kubeadm="$KUBERNETES_VERSION"
+sudo apt-get install -y cri-o
+
+sudo systemctl daemon-reload
+sudo systemctl enable crio --now
+sudo systemctl start crio.service
+
+echo "CRI runtime installed successfully"
+
+# Install kubelet, kubectl, and kubeadm
+curl -fsSL https://pkgs.k8s.io/core:/stable:/$KUBERNETES_VERSION/deb/Release.key |
+    gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/$KUBERNETES_VERSION/deb/ /" |
+    tee /etc/apt/sources.list.d/kubernetes.list
+
 sudo apt-get update -y
+sudo apt-get install -y kubelet="$KUBERNETES_INSTALL_VERSION" kubectl="$KUBERNETES_INSTALL_VERSION" kubeadm="$KUBERNETES_INSTALL_VERSION"
+
+# Prevent automatic updates for kubelet, kubeadm, and kubectl
 sudo apt-mark hold kubelet kubeadm kubectl
 
-# Install jq
+sudo apt-get update -y
+
+# Install jq, a command-line JSON processor
 sudo apt-get install -y jq
 
-# Get local IP address
-local_ip="$(ip --json addr show eth0 | jq -r '.[0].addr_info[] | select(.family == "inet") | .local')"
+# Retrieve the local IP address of the eth0 interface and set it for kubelet
+local_ip="$(ip --json addr show enx0 | jq -r '.[0].addr_info[] | select(.family == "inet") | .local')"
 
-# Configure kubelet
+# Write the local IP address to the kubelet default configuration file
 cat > /etc/default/kubelet << EOF
 KUBELET_EXTRA_ARGS=--node-ip=$local_ip
 EOF
-
 
 ```
 ```
