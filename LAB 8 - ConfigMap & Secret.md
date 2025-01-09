@@ -145,7 +145,7 @@ spec:
 save the file using `ESCAPE + :wq!`
 
 ```
-kubectl replace -f env2.yaml --force
+kubectl apply -f env2.yaml 
 ```
 ```
 kubectl describe pod web-pod-2
