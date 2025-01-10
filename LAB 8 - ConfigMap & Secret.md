@@ -278,7 +278,7 @@ spec:
 save the file using `ESCAPE + :wq!`
 
 ```
-kubectl replace -f env4.yaml --force
+kubectl apply -f env4.yaml 
 ```
 ```
 kubectl describe pod web-pod-4
