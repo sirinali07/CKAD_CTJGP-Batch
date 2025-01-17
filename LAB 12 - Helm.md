@@ -69,7 +69,7 @@ kubectl get svc
 ```
 Change the type of wordpress service to ***NodePort***
 ```
-kubectl edit svc wordpres
+kubectl edit svc my-wordpress
 ```
 verify the changes
 ```
