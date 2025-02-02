@@ -155,7 +155,7 @@ spec:
         app: web-blue
     spec:
       containers:
-      - image: mandarct/web-blue:v1
+      - image: 07sirin/my-nginx:v1
         name: web-blue
         ports:
         - containerPort: 80
@@ -228,7 +228,7 @@ spec:
         app: web-green
     spec:
       containers:
-      - image: mandarct/web-green:v1
+      - image: 07sirin/my-nginx:v2
         name: web-green
         ports:
         - containerPort: 80
