@@ -5,16 +5,17 @@ Create 2 namespaces
 ```
 kubectl create ns devops
 ```
-Now label the devops namespace and verify it
+```
+kubectl create ns finance
+```
+Now label the finance namespace and verify it
 ```
 kubectl label ns finance project=myproject
 ```
 ```
 kubectl get ns finance --show-labels
 ```
-```
-kubectl create ns finance
-```
+
 Create pod in devops namespace
 ```
 kubectl -n devops run ng-pod --image nginx --port 80 --expose
