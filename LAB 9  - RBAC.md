@@ -178,7 +178,7 @@ kubectl config set-context test-user-context --cluster kubernetes --namespace de
 ```
 kubectl config use-context test-user-context
 ```
-Copy Paste the "Cluster info"  from root users config file to the ***/home/test-user/.kube/config*** file as mention below  
+Copy Paste the "Cluster info"  from root users (/root/.kube/config) config file to the ***/home/test-user/.kube/config*** file as mention below  
 
 > - cluster:                 
 >       certificate-authority-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURCVENDQWUyZ0F3SUJBZ0lJVmh6dlZVYll2eDh3RFFZSktvWklodmNOQVFFTEJRQXdGVEVUTUJFR0ExVUUKQXhNS2EzVmlaWEp1WlhSbGN6QWVGdzB5TkRBek1UZ3dNalUzTWpaYUZ3MHpOREF6TVRZd016QXlNalphTUJVeApFekFSQmdOVkJBTVRDbXQxWW1WeWJtVjBaWE13Z2dFaU1BMEdDU3FHU0liM0RRRUJBUVVBQTRJQkR3QXdnZ0VLCkFvSUJBUUR1ZkYrRmVJWDdkR0MrZEhSeXY0czk0eld3JYeDF0VWpSWE1uZ1o2N24wVkEvQnNYNHExb29qZFZnUVgvQVFHdGFXb2ZUTkdkRgpDd2JTT2FyTm5vejMwZDBYVGNsT2IybVpDMEdUNW5POE1WczNDbW5pVGl6eTJ5MkxpdjhsYk03bFJwWjQ5ajR3CnRTU2NVSWZKS3Z6ZzBIUEwyMlhpYWtuK2FXbk9idHo0SlFHZWlEQ3dRR2JXMEYrbHBsbVEycmM0b0VHYWlxWHkKeUVNejNiejNFcyt5Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K  
@@ -212,7 +212,7 @@ kubectl -n devops run ng-pod --image=nginx --port=80
 ```
 Create a role  named "test-user-role" that grants permissions to list, create, and delete pods and services within the devops namespace
 ```
-kubectl -n devops create role dev-role --verb=list,create,delete --resource=pods,services
+kubectl -n devops create role dev-role --verb=get,list,create,delete --resource=pods,services
 ```
 Now create a role binding that associates the role with the test-user
 ```
