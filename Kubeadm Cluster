@@ -31,6 +31,7 @@ apt-get install -y cri-o kubelet kubeadm kubectl
  modprobe br_netfilter
  sysctl -w net.ipv4.ip_forward=1
 
+### On Master Nodes
  kubeadm init --ignore-preflight-errors=all
 
 mkdir -p $HOME/.kube
@@ -50,4 +51,4 @@ chown $(id -u):$(id -g) $HOME/.kube/config
 
  kubectl run pod-1 --image nginx
 
- kubeclt get po
+ kubectl get po
