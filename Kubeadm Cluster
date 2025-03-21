@@ -1,4 +1,4 @@
-
+#### On each node (vm's) into the cluster
  KUBERNETES_VERSION=v1.32
 
  CRIO_VERSION=v1.32
