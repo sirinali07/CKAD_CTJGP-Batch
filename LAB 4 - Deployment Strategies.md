@@ -257,7 +257,7 @@ kubectl get po -o wide
 ```
 Check the endpoints
 ```
-kubectl get ep svc svc-web
+kubectl get ep svc-web
 ```
 Access you application on the port 32123
 
